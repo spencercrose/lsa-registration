@@ -1,7 +1,7 @@
 <template>
   <div>
 
-    <PageHeader header="Manage Nominations" lead="" />
+    <PageHeader header="Manage Registrations" lead="" />
 
     <b-container>
       <b-row v-if="loading" class="vh-50 text-center" align-v="center">
@@ -205,7 +205,7 @@ import PageHeader from '@/components/common/PageHeader'
 import { BIconCheckSquare } from 'bootstrap-vue'
 
 export default {
-  name: 'nominations-admin',
+  name: 'registrations-admin',
   components: {
     PageHeader,
     BIconCheckSquare
@@ -283,7 +283,7 @@ export default {
       return app.get(`data/view`)
         .then(response => {
           const { data = [] } = response || {}
-          this.items = data.map(nomination => {
+          this.items = data.map(registration => {
             const {
               _id=null,
               submitted=false,
@@ -293,7 +293,7 @@ export default {
               nominees=[{}],
               updatedAt=null,
               createdAt=null,
-            } = nomination || {}
+            } = registration || {}
             const { firstname='', lastname=''} = nominees[0] || {}
             const updatedTS = new Date(updatedAt)
             const createdTS = new Date(createdAt)
@@ -306,7 +306,7 @@ export default {
               title: title || `${firstname} ${lastname}`,
               created: createdTS,
               updated: updatedTS,
-              data: nomination
+              data: registration
             }
           })
           this.loading = false
@@ -315,7 +315,7 @@ export default {
           console.error(err);
           this.error = true;
           this.message = {
-            text: 'Nominations could not be retrieved.',
+            text: 'Registrations could not be retrieved.',
             type: 'danger'
           }
           this.loading = false
@@ -337,7 +337,7 @@ export default {
       )
         .then(res => {
           const timestamp = new Date().getTime();
-          saveAs(res.data, `nominations_${timestamp}.zip`);
+          saveAs(res.data, `registrations_${timestamp}.zip`);
           this.message = {
             text: 'Export completed successfully!',
             type: 'success'
@@ -354,23 +354,23 @@ export default {
     async unsubmit (id) {
       try {
         this.message = {
-          text: 'Unsubmitting nomination...',
+          text: 'Unsubmitting registration...',
           type: 'info'
         }
         // handle data unsubmission
         await app.get(`data/unsubmit/${id}`)
         this.message = {
-          text: 'Successfully unsubmitted nomination!',
+          text: 'Successfully unsubmitted registration!',
           type: 'success'
         }
-        // reload nominations data
+        // reload registrations data
         await this.load()
 
       } catch (err) {
         console.error(err);
         this.submitting = false
         this.message = {
-          text: 'Nomination could not be unsubmitted.',
+          text: 'Registration could not be unsubmitted.',
           type: 'danger'
         }
       }

@@ -8,12 +8,13 @@
 import Home from  './components/views/Home'
 import NotFound from './components/views/404'
 import Unauthorized from './components/views/401'
-import RegStepProfile from "./components/views/RegStepProfile";
+import RegStepIdentification from "./components/views/RegStepIdentification";
 import RegStepMilestone from "./components/views/RegStepMilestone";
 import RegStepAwardSelection from "./components/views/RegStepAwardSelection";
 import RegStepAwardOptions from "./components/views/RegStepAwardOptions";
 import RegStepRetirement from "./components/views/RegStepRetirement";
 import RegStepServicePins from "./components/views/RegStepServicePins";
+import RegStepContact from "./components/views/RegStepContact";
 import RegStepCeremony from "./components/views/RegStepCeremony";
 import RegStepConfirmation from "./components/views/RegStepConfirmation";
 
@@ -48,21 +49,22 @@ const routes = [
     path: "/",
     name: "home",
     component: Home,
-    meta: getMeta('Home')
+    meta: getMeta('Start Your Registration')
   },
+  { path: '/recipients/start', redirect: '/recipients/identification' },
   {
-    path: "/recipient/profile",
-    name: "recipient-profile",
-    component: RegStepProfile,
+    path: "/recipients/identification",
+    name: "reg-step-identification",
+    component: RegStepIdentification,
     props: {
-      header: 'Recipient Profile',
-      lead: 'Your profile information'
+      header: 'Your Profile',
+      lead: 'Identification information'
     },
-    meta: getMeta('Recipient Profile')
+    meta: getMeta('Your Identification')
   },
   {
-    path: "/recipient/milestone",
-    name: "recipient-milestone",
+    path: "/recipients/milestone",
+    name: "reg-step-milestone",
     component: RegStepMilestone,
     props: {
       header: 'Your Milestone',
@@ -71,8 +73,8 @@ const routes = [
     meta: getMeta('Recipient Milestone')
   },
   {
-    path: "/recipient/award",
-    name: "recipient-award-selection",
+    path: "/recipients/award",
+    name: "reg-step-award-selection",
     component: RegStepAwardSelection,
     props: {
       header: 'Your Award',
@@ -81,53 +83,39 @@ const routes = [
     meta: getMeta('Recipient Award')
   },
   {
-    path: "/recipient/award-options",
-    name: "recipient-award-options",
+    path: "/recipients/award-options",
+    name: "reg-step-award-options",
     component: RegStepAwardOptions,
-    props: {
-      header: 'Your Award Options',
-      lead: 'Your award options information'
-    },
     meta: getMeta('Recipient Award Options')
   },
   {
-    path: "/recipient/retirement",
-    name: "recipient-retirement",
+    path: "/recipients/retirement",
+    name: "reg-step-retirement",
     component: RegStepRetirement,
-    props: {
-      header: 'Your Retirement',
-      lead: 'Your retirement information'
-    },
     meta: getMeta('Recipient Retirement')
   },
   {
-    path: "/recipient/service-pins",
-    name: "recipient-service-pins",
+    path: "/recipients/service-pins",
+    name: "reg-step-service-pins",
     component: RegStepServicePins,
-    props: {
-      header: 'Your Service Pin',
-      lead: 'Your service pin information'
-    },
     meta: getMeta('Recipient Service Pin')
   },
   {
-    path: "/recipient/ceremony",
-    name: "recipient-ceremony",
+    path: "/recipients/ceremony",
+    name: "reg-step-ceremony",
     component: RegStepCeremony,
-    props: {
-      header: 'LSA Ceremony',
-      lead: 'Your ceremony selection'
-    },
-    meta: getMeta('LSA Ceremony')
+    meta: getMeta('Ceremony')
   },
   {
-    path: "/recipient/confirmation",
-    name: "recipient-confirmation",
+    path: "/recipients/contact",
+    name: "reg-step-contact",
+    component: RegStepContact,
+    meta: getMeta('Contact Information')
+  },
+  {
+    path: "/recipients/confirmation",
+    name: "reg-step-confirmation",
     component: RegStepConfirmation,
-    props: {
-      header: 'Confirm Your Registration',
-      lead: 'Confirm your award registration'
-    },
     meta: getMeta('Confirmation')
   },
   {

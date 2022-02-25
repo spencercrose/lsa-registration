@@ -39,8 +39,8 @@ export default {
     show: Array
   },
   computed : {
-    nomination () {
-      return this.$store.getters.getNomination
+    registration () {
+      return this.$store.getters.getRegistration
     },
     settings () {
       return this.$store.getters.getSettings

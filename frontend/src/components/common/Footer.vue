@@ -3,14 +3,14 @@
     <b-navbar toggleable="lg" type="dark" variant="dark" class="p-1">
 
       <b-navbar-brand href="#">
-        <img height="40px" src="../../assets/wiw-white-text.svg" alt="Where Ideas Work" />
+        <img height="60px" src="../../assets/wiw-white-text.svg" alt="Where Ideas Work" />
       </b-navbar-brand>
 
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
         <b-navbar-nav>
-          <b-nav-item href="#">Terms of Use</b-nav-item>
-          <b-nav-item href="#">Privacy</b-nav-item>
+<!--          <b-nav-item href="#">Terms of Use</b-nav-item>-->
+<!--          <b-nav-item href="#">Privacy</b-nav-item>-->
         </b-navbar-nav>
       </b-navbar-nav>
 

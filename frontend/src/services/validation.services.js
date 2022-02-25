@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-export {genID, getWordCount, validateEmail, validatePhone};
+export {genID, getWordCount, validateEmail, validatePostcode, validatePhone};
 
 /**
  * Generate random ID string
@@ -31,7 +31,7 @@ function getWordCount(strRaw) {
 }
 
 /**
- * Validate email address
+ * Validates email address
  * Reference: https://stackoverflow.com/a/46181 (Retrieved Jan 18, 2022)
  * **/
 
@@ -44,7 +44,7 @@ const validateEmail = (email) => {
 };
 
 /**
- * Validate phone number
+ * Validates Canadian phone number
  * Reference: https://stackoverflow.com/a/29767609 (Retrieved Jan 25, 2022)
  * Valid formats:
     (123) 456-7890
@@ -61,5 +61,19 @@ const validatePhone = (phone) => {
     .toLowerCase()
     .match(
       /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4}$/im
+    );
+};
+
+/**
+ * Validates Canadian postal code
+ * Reference: https://stackoverflow.com/a/46761018
+ * ### ###
+ * **/
+
+const validatePostcode = (postalcode) => {
+  return !!String(postalcode)
+    .toLowerCase()
+    .match(
+      /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i
     );
 };

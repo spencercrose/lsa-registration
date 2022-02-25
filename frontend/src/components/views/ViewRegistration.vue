@@ -1,18 +1,18 @@
 <template>
   <div>
       <RedirectButton
-        label="Return to My Nominations"
+        label="Return to My Registrations"
         :show="this.$store.getters.isError"
         uri="/list"
       />
-      <b-card v-if="!this.$store.getters.isError && nomination._id">
+      <b-card v-if="!this.$store.getters.isError && registration._id">
         <b-container class="p-3">
           <b-row>
             <b-col align="right">
               <EditMenu
-                :disabled="nomination.submitted"
-                :id="nomination._id"
-                :category="nomination.category"
+                :disabled="registration.submitted"
+                :id="registration._id"
+                :category="registration.category"
                 :show="['edit', 'delete']"
               />
             </b-col>
@@ -20,9 +20,9 @@
           <b-row class="mb-4">
             <b-col>
               <h3 class="text-center">
-                Nomination Details
-                <b-badge :variant="nomination.submitted ? 'success' : 'warning'">
-                  {{ nomination.submitted ? 'Submitted' : 'Draft' }}
+                Registration Details
+                <b-badge :variant="registration.submitted ? 'success' : 'warning'">
+                  {{ registration.submitted ? 'Submitted' : 'Draft' }}
                 </b-badge>
               </h3>
             </b-col>
@@ -32,7 +32,7 @@
               <h5>Year</h5>
             </b-col>
             <b-col>
-              <p>{{ nomination.year }}</p>
+              <p>{{ registration.year }}</p>
             </b-col>
           </b-row>
           <b-row class="mb-4">
@@ -40,7 +40,7 @@
               <h5>Category</h5>
             </b-col>
             <b-col>
-              <p>{{ lookup('categories', nomination.category) }}</p>
+              <p>{{ lookup('categories', registration.category) }}</p>
             </b-col>
           </b-row>
           <b-row class="mb-4">
@@ -48,7 +48,7 @@
               <h5>ID</h5>
             </b-col>
             <b-col>
-              {{nomination._id}}
+              {{registration._id}}
             </b-col>
           </b-row>
           <b-row class="mb-4">
@@ -56,7 +56,7 @@
               <h5>GUID</h5>
             </b-col>
             <b-col>
-              <p>{{ nomination.guid }}</p>
+              <p>{{ registration.guid }}</p>
             </b-col>
           </b-row>
           <b-row class="mb-4">
@@ -64,7 +64,7 @@
               <h5>Submitted</h5>
             </b-col>
             <b-col>
-              <p><b>{{ nomination.submitted ? 'Yes' : 'No' }}</b></p>
+              <p><b>{{ registration.submitted ? 'Yes' : 'No' }}</b></p>
             </b-col>
           </b-row>
           <b-row class="mb-4">
@@ -72,21 +72,21 @@
               <h5>Organization</h5>
             </b-col>
             <b-col>
-              {{lookup('organizations', nomination.organization)}}
+              {{lookup('organizations', registration.organization)}}
             </b-col>
           </b-row>
-          <b-row  v-if="!!nomination.title" class="mb-4">
+          <b-row  v-if="!!registration.title" class="mb-4">
             <b-col cols="3">
               <h5>Title</h5>
             </b-col>
-            <b-col>{{nomination.title}}</b-col>
+            <b-col>{{registration.title}}</b-col>
           </b-row>
           <b-row class="mb-4">
             <b-col cols="3">
               <h5>Acknowledgment</h5>
             </b-col>
             <b-col>
-              <p>{{ nomination.acknowledgment.toUpperCase() }}</p>
+              <p>{{ registration.acknowledgment.toUpperCase() }}</p>
             </b-col>
           </b-row>
           <b-row>
@@ -94,7 +94,7 @@
             <b-col>
               <b-table
                 stacked
-                :items="nomination.nominees"
+                :items="registration.nominees"
                 :fields="['type', 'firstname', 'lastname', 'organization']"
                 striped
                 responsive="sm"
@@ -115,7 +115,7 @@
             <b-col>
               <b-table
                 stacked
-                :items="nomination.nominators"
+                :items="registration.nominators"
                 :fields="['firstname', 'lastname', 'title', 'email']"
                 primary-key="id"
               ></b-table>
@@ -127,23 +127,23 @@
               <h5>Primary</h5>
               <b-table
                 stacked
-                :items="[nomination.contacts.primary]"
+                :items="[registration.contacts.primary]"
                 :fields="['firstname', 'lastname', 'title', 'email', 'phone']"
                 primary-key="id"
               ></b-table>
               <h5>Video</h5>
               <b-table
                 stacked
-                :items="[nomination.contacts.video]"
+                :items="[registration.contacts.video]"
                 :fields="['firstname', 'lastname', 'title', 'email']"
                 striped
                 responsive="sm"
                 primary-key="id"
               >
-                <template #cell(locations)="nomination">
+                <template #cell(locations)="registration">
                   <b-table
                     stacked
-                    :items="nomination.locations"
+                    :items="registration.locations"
                     :fields="['address', 'city']"
                     primary-key="id"
                   ></b-table>
@@ -159,7 +159,7 @@
             <b-col>
               <b-table
                 stacked
-                :items="[nomination.evaluation]"
+                :items="[registration.evaluation]"
                 primary-key="id"
               >
                 <template #cell(type)="nominee">
@@ -237,13 +237,13 @@ import app from '@/services/api.services'
 import { saveAs } from 'file-saver';
 
 export default {
-  name: 'nomination-view',
+  name: 'registration-view',
   components: {
     EditMenu, RedirectButton
   },
   computed: {
-    nomination () {
-      return this.$store.getters.getNomination
+    registration () {
+      return this.$store.getters.getRegistration
     },
     attachments () {
       return this.$store.getters.getAttachments
@@ -281,11 +281,11 @@ export default {
     }
   },
   async beforeCreate() {
-    this.$store.dispatch('loadNomination', this.$route.params.id)
+    this.$store.dispatch('loadRegistration', this.$route.params.id)
       .catch(err => {
         console.error(err)
         this.$store.dispatch('handleError',
-          {text: 'Nomination failed to load.', type: 'danger'}
+          {text: 'Registration failed to load.', type: 'danger'}
         )
       })
   }

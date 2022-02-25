@@ -1,39 +1,19 @@
 <template>
   <b-container fluid>
-    <pageheader header="Registration" lead="Your Retirement Plans" />
-    <RegProgress active="retirement" />
-    <b-alert
-      v-if="Object.keys(retirement).length===0 || Object.keys(contact).length===0"
-      show
-      variant="secondary"
-    >
-      Please wait while your registration is loaded...
-    </b-alert>
-    <b-form v-else>
-      <b-card
-        header="Retirement Details"
-        header-tag="header"
-        bg-variant="light"
-        class="mb-3"
+    <pageheader header="Registration" lead="Your Contact Information" />
+    <RegProgress active="contact" />
+
+    <b-form v-if="!this.$store.getters.isError">
+
+      <b-alert
+        v-if="Object.keys(contact).length===0"
+        show
+        variant="secondary"
       >
-        <p>Let us know when you plan to retire and your personal contact information, so we have a way of contacting you.</p>
-        <b-form-group
-          label-cols-lg="3"
-          label="Retirement Date"
-          label-size="lg"
-          label-class="font-weight-bold"
-        >
-          <b-form-datepicker
-            v-model="retirement.retirementDate"
-            :min="currentDate"
-            :max="maxDate"
-            locale="en"
-            :state="validate('retirementDate')"
-          />
-          <b-form-invalid-feedback :state="validate('retirementDate')">
-            This field is required.
-          </b-form-invalid-feedback>
-        </b-form-group>
+        Please wait while your contact information is loaded...
+      </b-alert>
+
+      <b-card v-else bg-variant="light" class="mb-3">
 
         <b-form-group
           label-cols-lg="3"
@@ -146,30 +126,19 @@ import pageheader from '../common/PageHeader'
 import {validateEmail, validatePhone, validatePostcode} from "../../services/validation.services";
 import RegProgress from '../common/RegProgress'
 import RegMenu from '../common/RegMenu'
-import {updateRetirement, updatePersonalContact} from "../../services/api.services";
+import { updatePersonalContact } from "../../services/api.services";
 
 export default {
-  name: "registration-step-retirement",
+  name: "registration-step-contact",
   components: {
     pageheader,
     RegProgress,
     RegMenu
   },
   methods: {
-    updater: async (data) => {
-      await updateRetirement(data)
-      await updatePersonalContact(data)
-    }
+    updater: updatePersonalContact
   },
   computed: {
-    retirement: {
-      get () {
-        return this.$store.getters.getRegistration.retirement;
-      },
-      set (value) {
-        this.$store.dispatch("setRetirement", value )
-      }
-    },
     contact: {
       get () {
         return this.$store.getters.getRegistration.contact;
@@ -181,9 +150,6 @@ export default {
     validate(){
       return (field) => {
         const fields = {
-          retirementDate: ()=>{
-            return !!this.retirement.retirementDate
-          },
           personalAddressPrefix: ()=>{
             return true
           },
@@ -209,24 +175,15 @@ export default {
     },
     validation() {
       return this.$store.getters.getValidation.retirement
-    },
-    currentDate() {
-      return new Date();
-    },
-    maxDate() {
-      const n = 1
-      const thisDate = new Date()
-      return new Date(thisDate.setFullYear(thisDate.getFullYear() + n))
     }
   },
   async beforeCreate() {
-    // set workflow status
-    await this.$store.dispatch('setStatus', {
-      current: 'reg-step-retirement',
-      previous: 'reg-step-milestone',
-      next: 'reg-step-award-selection'
+    // set registration workflow status
+    this.$store.commit('setStatus', {
+      current: 'reg-step-contact',
+      previous: 'reg-step-ceremony',
+      next: 'reg-step-confirmation'
     })
-      .catch(err => {console.warn(err)})
   }
 };
 </script>

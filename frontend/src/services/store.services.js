@@ -5,11 +5,11 @@
  * MIT Licensed
  */
 
-import api from './api.services';
+import {authenticate, getAwards, getOptions, getRegistration, getPecsfOptions } from './api.services';
 
 /**
  * Registration data model
- *  1. Recipient Profile
+ *  1. Recipient Identification
  *  2. Milestone
  *  3. Retirement
  *  4. Award Selection
@@ -20,32 +20,37 @@ import api from './api.services';
  *  9. Confirmation
  */
 
-const initSettings = {}
-const initUser = {}
-const initProfile = {
-    firstname       : '',
-    lastname        : '',
-    organization    : ''
+const initRegFlowStatus = {
+  current: null,
+  next: null,
+  previous: null
 }
+const initOptions = {
+  organizations: []
+}
+const initUser = {}
+const initIdentification = {}
 const initMilestone = {}
 const initRetirement = {}
-const initAwardSelection = {}
-const initAwardOptions = {}
+const initAwards = []
+const initAwardSelection = {
+  awardId: null,
+  options: {type: null}
+}
 const initServicePins = {}
-const initCeremony = {}
 const initContact = {}
-const initConfirmation = {}
+const initDeclarations = {}
 
 const initValidation = {
-  profile: false,
-  milestone: false,
-  retirement: false,
-  awardSelection: false,
-  awardOptions: false,
-  servicePins: false,
-  ceremony: false,
-  contact: false,
-  confirmation: false
+  'reg-step-identification': true,
+  'reg-step-milestone': true,
+  'reg-step-retirement': true,
+  'reg-step-award-selection': true,
+  'reg-step-award-options': true,
+  'reg-step-service-pins': true,
+  'reg-step-ceremony': true,
+  'reg-step-contact': true,
+  'reg-step-confirmation': true
 }
 
 const initMessage = {
@@ -54,34 +59,39 @@ const initMessage = {
   spinner: false
 }
 
+
 /**
  * State storage
  */
 
+
 const state = {
+  recipientId: null,
+  status: initRegFlowStatus,
   user: initUser,
-  settings: initSettings,
-  registration: {
-    profile: initProfile,
-    milestone: initMilestone,
-    retirement: initRetirement,
-    awardSelection: initAwardSelection,
-    awardOptions: initAwardOptions,
-    servicePins: initServicePins,
-    ceremony: initCeremony,
-    contact: initContact,
-    confirmation: initConfirmation
-  },
-  progress: 0,
+  options: initOptions,
+  metadata: {},
+  identification: initIdentification,
+  milestone: initMilestone,
+  retirement: initRetirement,
+  awardSelection: initAwardSelection,
+  servicePins: initServicePins,
+  contact: initContact,
+  declarations: initDeclarations,
+  awards: initAwards,
+  pecsfOptions: {},
   validation: initValidation,
   message: initMessage,
   error: false,
   loading: false
 };
 
+
+
 /**
  * State getters
  */
+
 
 const getters = {
   isAuthenticated: state => {
@@ -96,12 +106,15 @@ const getters = {
   getMessage: state => {
     return state.message || initMessage
   },
-  isError: state => {
-    return state.error
-  },
   isLoading: state => {
     return state.loading
   },
+  isError: state => {
+    return state.error
+  },
+  // isLoading: state => {
+  //   return state.loading
+  // },
   getUser: state => {
     const {
       guid='',
@@ -119,50 +132,107 @@ const getters = {
       role: role
     }
   },
-  getSettings: state => {
-    return state.settings || initSettings
+
+  /**
+   * Get ministries in store as select options
+   *
+   * @param  state
+   * @return {Array}
+   */
+
+  getOrganizations: state => {
+    // sorting comparison function
+    // - puts items in alphabetical order
+    function compare( a, b ) {
+      if ( a.shortName < b.shortName )return -1;
+      if ( a.shortName > b.shortName )return 1;
+      return 0;
+    }
+    const orgs = state.options.organizations
+      .sort(compare)
+      .map(org => {
+      return {
+        text: `[${org.shortName}] ${org.name}`,
+        value: org.id
+      }
+    }) || initOptions
+    orgs.unshift({ value: null, text: 'Please select a Ministry' })
+    return orgs
   },
+
+  /**
+   * Get milestone selected for registration
+   *
+   */
+
+  getMilestone: state => {
+    return state.milestone.selected || localStorage.getItem('milestone')
+  },
+
+  /**
+   * Get awards loaded for given milestone
+   *
+   * @param  state
+   * @return {Array}
+   */
+
+  getAwards: state => {
+    return state.awards
+  },
+
+  /**
+   * Get PECSF charities and regions
+   *
+   * @param  state
+   * @return {Array}
+   */
+
+  getPecsfOptions: state => {
+    return state.pecsfOptions
+  },
+
+  /**
+   * Get registration workflow status
+   *
+   * @param  state
+   * @return {Object}
+   */
+
+  getStatus: state => {
+    return state.status
+  },
+
+  /**
+   * Get registration data from state
+   *
+   * @param  state
+   * @return {{identification: (*|boolean), milestone: (boolean|*), contact: (boolean|*), retirement: (boolean|*), awardSelection: (boolean|*), servicePins: (boolean|*), declarations: (boolean|*)}}
+   */
+
   getRegistration: state => {
-    return state.registration
+    return {
+      recipientId: state.recipientId,
+      metadata: state.metadata,
+      identification: state.identification,
+      milestone: state.milestone,
+      retirement: state.retirement,
+      awardSelection: state.awardSelection,
+      servicePins: state.servicePins,
+      contact: state.contact,
+      declarations: state.declarations
+    }
   },
-  validateProfile: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateMilestone: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateRetirement: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateAwardSelection: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateAwardOptions: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateServicePins: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateCeremony: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateContact: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
-  validateConfirmation: state => {
-    return !!state.profile.firstname && !!state.profile.firstname && !!state.profile.organization
-  },
+
+  /**
+   * Get registration validation status from state
+   *
+   * @param  state
+   * @return {Array}
+   */
+
   getValidation: state => {
-    // run validation checks on all forms
-    state.validation.profile = this.validateProfile(state)
-    state.validation.milestone = this.validateMilestone(state)
-    state.validation.retirement = this.validateRetirement(state)
-    state.validation.awardSelection = this.validateAwardSelection(state)
-    state.validation.awardOptions = this.validateAwardOptions(state)
-    state.validation.servicePins = this.validateServicePins(state)
-    state.validation.ceremony = this.validateCeremony(state)
-    state.validation.contact = this.validateContact(state)
-    state.validation.confirmation = this.validateConfirmation(state)
+    // run validation checks on all forms (registration steps)
+    // TODO complete validators in each form
     return state.validation
   }
 };
@@ -172,128 +242,266 @@ const getters = {
  */
 
 const actions = {
-  setMessage({ commit }, newValue) {
-    const { text='', type='', spinner=false } = newValue || {}
-    commit("setMessage", { text: text, type: type, spinner: spinner });
-  },
-  resetMessage({ commit }) {
-    commit("resetMessage");
-  },
-  async login({commit}) {
+
+  /**
+   * Authenticate SSO credentials
+   * @param commit
+   * @param state
+   */
+
+  async authenticate({commit, state}) {
     try {
-      const response = await api.get('users/login') || {}
-      const { data = {} } = response || {}
-      const { user = {} } = data || {}
+      const user = await authenticate()
       await commit('setUser', user)
+      return user
     } catch (err) {
-      console.error(err);
       process.env.NODE_ENV === 'production'
         ? await commit('setMessage', {
           text: 'Please sign in to access this site.',
           type: 'danger'
         })
         : await commit('setUser', {
-          guid: 'test_admin_guid',
-          username: 'test_admin',
+          guid: process.env.VUE_APP_TEST_GUID,
+          username: process.env.VUE_APP_TEST_IDIR,
           role: 'super-administrator'
         })
+      return state.user
     }
   },
-  async logout({commit}){
-    await api.post('users/logout')
-    await commit('logout')
-  },
-  async createRegistration({ commit }, init) {
 
-    // initialization
+  /**
+   * Initialize new registration data for recipient
+   * @param commit
+   * @param guid
+   */
+
+  async initRegistration({ commit, state }) {
     commit('resetRegistration')
-    commit('setError', false)
     commit('setMessage', {
-      text: 'Creating new registration...',
-      type: 'info',
-      spinner: true
-    })
-
-    // check if user has an existing registration
-    const response = await api.get(`recipient/${init.guid}`) || []
-    const { data=[] } = response || {}
-    commit("setRegistration", data)
-    commit('setMessage', {
-      text: 'Created new registration.',
+      text: 'Starting a new registration!',
       type: 'success'
     })
-  },
-  async removeRegistration({ commit }, id) {
-    commit('resetRegistration')
-    commit('setError', false)
-    commit('setMessage', {
-      text: 'Deleting registration...',
-      type: 'info',
-      spinner: true
+    // initialize identification data using credentials
+    const { guid='', username='' } = state.user || {}
+    commit('setIdentification', {
+      guid: guid,
+      idir: username
     })
+  },
 
-    await api.get(`data/delete/${id}`)
-    commit('resetMessage')
-    commit('setMessage', {
-      text: 'Registration deleted successfully!',
-      type: 'success',
-      spinner: false
-    })
-  },
-  async loadRegistration({ commit }, guid) {
+  /**
+   * Load registration data for recipient into store
+   * @param commit
+   * @param state
+   * @param guid
+   */
+
+  async loadRegistration({ commit, state }, guid) {
     commit('resetRegistration')
-    commit('setError', false)
-    commit('setLoading', true)
     commit('setMessage', {
       text: 'Loading Registration data...',
       type: 'info',
       spinner: true
     })
 
-    const registration = await api.get(`recipient/${guid}`)
-    const { data=null } = registration || {}
-    console.log('Loading Registration:', registration.data)
+    // retrieve registration data by GUID
+    state.loading = true
+    const registration = await getRegistration(guid, state.milestone.selected, state.awardSelection)
+    state.loading = false
+    console.log('Loading Destructured Registration:', registration)
 
-    // does this Registration exist?
-    if ( !data ) {
+    // store registration sections data in state
+    commit("setRegId", registration.recipientId)
+    commit("setMetadata", registration.metadata)
+    commit("setIdentification", registration.identification)
+    commit("setMilestone", registration.milestone)
+    commit("setRetirement", registration.retirement)
+    commit("setAwardSelection", registration.awardSelection)
+    commit("setServicePins", registration.servicePins)
+    commit("setContact", registration.contact)
+    commit("setDeclarations", registration.declarations)
+
+    // load any awards for requested milestone
+    if (state.milestone.selected) {
+      const awards = await getAwards(state.milestone.selected)
+      commit("setAwards", awards)
+    }
+
+    // load any options for requested award
+    const awardId = localStorage.getItem('award')
+    if (awardId) {
+      const pecsfOptions = await getPecsfOptions()
+      commit("setPecsfOptions", pecsfOptions)
+    }
+
+    // load global options
+    const options = await getOptions()
+    commit("setOptions", options)
+
+
+    commit('resetMessage')
+  },
+
+  /**
+   * Save registration data to database
+   * @param commit
+   * @param state
+   * @param updater
+   */
+
+  async saveRegistration({ commit, state }, updater) {
+    try {
+      commit('setError', false)
+      commit('setLoading', true)
       commit('setMessage', {
-        text: 'Registration could not be found.',
+        text: 'Saving Registration data...',
+        type: 'info',
+        spinner: true
+      })
+
+      const registration = {
+        recipientId: state.recipientId,
+        identification: state.identification,
+        milestone: state.milestone,
+        retirement: state.retirement,
+        awardSelection: state.awardSelection,
+        servicePins: state.servicePins,
+        contact: state.contact,
+        declarations: state.declarations
+      }
+      console.log('Saving:', registration)
+
+      // update registration data for recipient
+      await updater(registration)
+      commit('setMessage', {
+        text: 'Registration saved.',
+        type: 'success',
+        spinner: false
+      })
+
+    } catch (err) {
+      console.error(err);
+      console.warn('Error', err.message);
+      commit('setMessage', {
+        text: 'Registration could not be saved.',
+        type: 'danger',
+        spinner: false
+      })
+    } finally {
+      commit('setLoading', false)
+    }
+  },
+
+  /**
+   * Load options in store
+   * @param commit
+   * @param data
+   */
+
+  async loadOptions({ commit }) {
+    const options = await getOptions()
+    commit("setOptions", options);
+  },
+
+  /**
+   * Set global message
+   * @param commit
+   * @param msgData
+   */
+
+  setMessage({ commit }, msgData) {
+    const { text='', type='', spinner=false, dismissible=false } = msgData || {}
+    commit("setMessage", {
+      text: text,
+      type: type,
+      spinner: spinner,
+      dismissible: dismissible
+    });
+  },
+
+  /**
+   * Reset global message
+   * @param commit
+   */
+
+  resetMessage({ commit }) {
+    commit("resetMessage");
+  },
+
+  /**
+   * Update registration workflow status
+   * @param commit
+   * @param regData
+   */
+
+  setStatus({ commit }, regData) {
+    const { current=null, next=null, previous=null } = regData || {}
+    commit("setStatus", {
+      current: current,
+      previous: previous,
+      next: next
+    });
+  },
+
+  /**
+   * Reset registration data in store to initial values
+   * @param commit
+   * @param data
+   */
+
+  resetRegistration({ commit }) {
+    commit("resetRegistration");
+  },
+
+  /**
+   * Load awards for requested milestone
+   * @param commit
+   * @param milestone
+   */
+
+  async loadAwards({ commit }, milestone) {
+    commit('setError', false)
+    commit('setLoading', true)
+    commit('setMessage', {
+      text: `Loading Awards for milestone year ${milestone}...`,
+      type: 'info',
+      spinner: true
+    })
+
+    // retrieve and destructure API data
+
+    const awards = await getAwards(milestone)
+
+    // do awards exist?
+    if ( !awards ) {
+      commit('setMessage', {
+        text: 'Awards could not be found for this milestone.',
         type: 'danger'
       })
       commit('setError', true)
       commit('setLoading', false)
     }
     else {
-      // store Registration + attachment data in state
-      commit("setRegistration", data || {})
+      // store identification in state
+      commit("setAwards", awards || [])
       commit('resetMessage')
       commit('setLoading', false)
     }
   },
-  setRegistration({ commit }, newValue) {
-    commit("setRegistration", newValue);
-  },
-  resetRegistration({ commit }) {
-    commit("resetRegistration");
-  },
-  setValidation({ commit }, newValue) {
-    commit("setValidation", newValue);
-  },
+
   handleError ({ commit }, message) {
     commit('setMessage', message)
     commit('setError', true)
   }
 };
 
+
 /**
  * State mutations
  */
 
+
 const mutations = {
-  logout(state){
-    localStorage.clear()
-    state.user = null
-  },
   setMessage( state, message ) {
     state.message = message
   },
@@ -309,17 +517,63 @@ const mutations = {
   setUser(state, user){
     state.user = user
   },
-  setRegistration(state, data) {
-    state.Registration = Object.assign({}, state.Registration, data)
+  setOptions(state, data) {
+    state.options = data
+  },
+  setAwardOptions(state, data) {
+    state.awardSelection.options = data
+  },
+  setPecsfOptions(state, data) {
+    state.pecsfOptions = data
+  },
+  setStatus(state, data) {
+    state.status = data
+  },
+  setRegId(state, id) {
+    state.recipientId = id
+  },
+  setMetadata(state, data) {
+    state.metadata = Object.assign({}, state.metadata, data)
+  },
+  setIdentification(state, data) {
+    state.identification = Object.assign({}, state.identification, data)
+  },
+  setMilestone(state, data) {
+    const { milestones=null } = data
+    localStorage.setItem('milestone', milestones)
+    state.milestone = Object.assign({}, state.milestone, data)
+  },
+  setRetirement(state, data) {
+    state.retirement = Object.assign({}, state.retirement, data)
+  },
+  setAwardSelection(state, data) {
+    const { awardId=null } = data
+    localStorage.setItem('award', awardId)
+    state.awardSelection = Object.assign({}, state.awardSelection, data)
+  },
+  setServicePins(state, data) {
+    state.servicePins = Object.assign({}, state.servicePins, data)
+  },
+  setDeclarations(state, data) {
+    state.declarations = Object.assign({}, state.declarations, data)
+  },
+  setContact(state, data) {
+    state.contact = Object.assign({}, state.contact, data)
+  },
+  setAwards(state, data) {
+    state.awards = Object.assign([], state.awards, data)
   },
   resetRegistration(state) {
-    state.Registration = {}
+    state.identification = initIdentification
+    state.milestone = initMilestone
+    state.retirement = initRetirement
+    state.awardSelection = initAwardSelection
+    state.servicePins = initServicePins
+    state.contact = initContact
+    state.declarations = initDeclarations
   },
-  setAttachments(state, data) {
-    state.attachments = data
-  },
-  setValidation(state, data) {
-    state.validation = Object.assign({}, state.validation, data)
+  setValidation(state, key, value) {
+    state.validation[key] = value
   }
 };
 

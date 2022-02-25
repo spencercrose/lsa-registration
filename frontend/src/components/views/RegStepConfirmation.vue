@@ -1,169 +1,283 @@
 <template>
-  <div>
-    <b-form v-if="!this.$store.getters.isError"><!-- begin nomination form -->
-      <b-container fluid>
-        <b-row>
-          <b-col cols="9">
-            <div id="form-sections">
-              <pageheader
-                header="Leadership"
-                lead="Premier's Awards Nomination for Leadership"
-              />
-              <h4 id="list-item-acknowledgment">Overview</h4>
-              <p>This award recognizes a BC Public Service employee who demonstrates the highest levels of integrity and exemplary leadership abilities either leading a team or organization, or a substantial project, process or initiative.</p>
-              <p>Considerations may include but are not limited to</p>
-              <ul>
-                <li>Ability to create, communicate and implement a clear and compelling vision</li>
-                <li>Ability to establish trust, motivate, empower and receive high satisfaction ratings from their employees</li>
-                <li>Ethical leadership practices</li>
-                <li>Commitment to diversity and inclusion in both the work environment and the development of programs, policies and services</li>
-                <li>Advocating meaningful engagement and learning with Indigenous peoples to support and facilitate reconciliation</li>
-                <li>Anticipating future trends and working with others to develop strategies to meet future challenges</li>
-                <li>Commitment to succession management through knowledge transfer, support for continuous learning and mentorship</li>
-                <li>Commitment to service delivery in exceeding the needs/expectations of internal or external clients</li>
-                <li>Experimental or innovative mindset whereby openness to change, taking calculated risks and challenging the status quo to try something new resulted in a measurable outcome</li>
-              </ul>
-              <acknowledgment />
+  <b-container fluid>
+    <pageheader header="Registration" lead="Confirm Your Registration" />
+    <RegProgress active="confirmation" />
 
-              <h4 id="list-item-organization">Organization</h4>
-              <organization />
+    <b-form v-if="!this.$store.getters.isError">
 
-              <h4 id="list-item-nominees">Nominee</h4>
-              <nominees type="single" />
+      <b-alert v-if="Object.keys(registration || {}).length===0" show variant="secondary">
+        Please wait while your registration is loaded...
+      </b-alert>
 
-              <h4 id="list-item-nominators">Nominators</h4>
-              <nominators />
+      <div v-else class="mb-3">
+        <b-card>
+          <b-container class="p-3">
+            <b-row class="mb-4">
+              <b-col>
+                <h3 class="text-center">
+                  Registration Details
+                </h3>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Identification</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.identification]"
+                  :fields="[
+                    {key: 'employeeNumber', label: 'Employee Number'},
+                    {key: 'fullName', label: 'Full Name'},
+                    {key: 'governmentEmail', label: 'Government Email'},
+                    {key: 'governmentPhoneNumber', label: 'Government Phone'},
+                    {key: 'organizationId', label: 'Ministry/Organization'},
+                    {key: 'branchName', label: 'Branch'}
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                  <template #cell(organizationId)="identity">
+                    {{ lookupOrganization(identity.item.organizationId) }}
+                  </template>
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Milestone</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.milestone]"
+                  :fields="[
+                    {key: 'selected', label: 'Your Milestone'},
+                    {key: 'qualifyingYear', label: 'Your Qualifying Year'},
+                    {key: 'isBCGEUMember', label: 'BCGEUMember'}
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                  <template #cell(isBCGEUMember)="cell">
+                    {{ cell.item.isBCGEUMember ? 'Yes' : 'No' }}
+                  </template>
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Award</h5></b-col>
+              <b-col>
+                <b-table
+                  v-if="lookupAward(registration.awardSelection.awardId)"
+                  stacked
+                  :items="[lookupAward(registration.awardSelection.awardId)]"
+                  :fields="[
+                    {key: 'name', label: 'Award Name'},
+                    {key: 'description', label: 'Description'},
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Options</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.awardSelection.options]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Supervisor Contact Info (Service Pin)</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.servicePins]"
+                  :fields="[
+                    {key:'supervisorFullName', label:'Full Name'},
+                    {key:'supervisorPOBox', label:'P.O. Box'},
+                    {key:'supervisorAddressPrefix', label:'Prefix'},
+                    {key:'supervisorAddressStreetAddress', label:'Street'},
+                    {key:'supervisorAddressPostalCode', label:'Postal Code'},
+                    {key:'supervisorAddressCommunity', label:'Community'},
+                    {key:'supervisorEmail', label:'Email'}
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Personal Contact Info</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.contact]"
+                  :fields="[
+                    {key:'personalFullName', label:'Full Name'},
+                    {key:'personalAddressPrefix', label:'Prefix'},
+                    {key:'personalAddressStreetAddress', label:'Street'},
+                    {key:'personalAddressPostalCode', label:'Postal Code'},
+                    {key:'personalAddressCommunity', label:'Community'},
+                    {key:'personalEmail', label:'Email'},
+                    {key:'personalPhoneNumber', label:'Phone'},
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col cols="3"><h5>Ceremony</h5></b-col>
+              <b-col>
+                <b-table
+                  stacked
+                  :items="[registration.declarations]"
+                  :fields="[
+                    {key:'ceremonyOptOut', label:'I plan to attend the Awards Ceremony'},
+                    ]"
+                  striped
+                  responsive="sm"
+                  primary-key="id"
+                >
+                  <template #cell(ceremonyOptOut)="cell">
+                    {{ cell.item.ceremonyOptOut ? 'Yes' : 'No' }}
+                  </template>
+                </b-table>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-card>
 
-              <h4 id="list-item-contacts">Contact Information</h4>
-              <contacts />
+        <b-card bg-variant="light" class="mb-3">
+          <b-form-group
+            id="fieldset-declarations-is-declared"
+            label="Declaration"
+            label-size="md"
+            label-class="font-weight-bold"
+            label-for="input-declarations-is-declared"
+            v-slot="{ ariaDescribedby }"
+            class="mb-4"
+          >
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus in arcu erat. Fusce turpis nibh, vehicula eget urna accumsan, placerat tincidunt tortor. Vivamus ante ligula, commodo eu nulla a, egestas vehicula erat. Vivamus pharetra tellus ligula, ac euismod neque venenatis nec. Cras blandit est nec convallis ultricies. Nam ut laoreet ante. Integer sed tempus sapien. Phasellus sodales orci ac dui eleifend aliquam.</p>
+            <b-form-checkbox
+              id="input-declarations-is-declared"
+              v-model="declarations.isDeclared"
+              :value="1"
+              :unchecked-value="0"
+              :aria-describedby="ariaDescribedby"
+              :state="validate('isDeclared')"
+            >I declare the information provided in this registration to be accurate.</b-form-checkbox>
+            <b-form-invalid-feedback :state="validate('isDeclared')">
+              This field is required.
+            </b-form-invalid-feedback>
+          </b-form-group>
 
-              <h4 id="list-item-evaluation">Evaluation Considerations</h4>
-              <evaluation>
-                <template v-slot:summary_overview></template>
-                <template v-slot:context_overview>
-                  <p>Briefly describe the conditions under which the employee demonstrates exemplary leadership to provide background and perspective.</p>
-                </template>
-                <template v-slot:complexity_overview>
-                <p>Describe the employee’s ability to demonstrate exemplary leadership acumen including, but not limited to</p>
-                <ul>
-                  <li>Size of the organization, project, process or initiative managed</li>
-                  <li>Managing complex situations including large-scale initiatives, managing and mitigating risks, creatively solving problems and implementing solutions</li>
-                  <li>Constraints encountered and overcome under their leadership such as time frame, technical, financial, organizational or policy</li>
-                </ul>
-                </template>
+          <b-form-group
+            id="fieldset-declarations-survey-participation"
+            label="Would you like to participate in our survey?"
+            label-size="md"
+            label-class="font-weight-bold"
+            label-for="input-declarations-survey-participation"
+            v-slot="{ ariaDescribedby }"
+            class="mb-4"
+          >
+            <b-form-checkbox
+              id="input-declarations-survey-participation"
+              v-model="declarations.surveyParticipation"
+              :value="1"
+              :unchecked-value="0"
+              :aria-describedby="ariaDescribedby"
+              :state="validate('surveyParticipation')"
+            >Yes, I would like to participate in the LSA survey</b-form-checkbox>
+          </b-form-group>
 
-                <template v-slot:valuing_people_overview>
-          <p>Identify and describe how the employee demonstrates their leadership in supporting the workplace either by leading a team or organization, or as leader of a substantial project, process or initiative.</p>
-                  <p>Considerations may include but are not limited to</p>
-          <ul>
-            <li>Ability to create, communicate and implement a clear and compelling vision for their team aligning with the Corporate Plan for the BC Public Service</li>
-            <li>Ability to establish trust, motivate and receive high satisfaction ratings from their employees and/or stakeholders</li>
-            <li>Ability to involve, empower and lead staff through times of change</li>
-            <li>Investing in personal and organizational learning about trends and new ideas in their sector and the broader government context</li>
-            <li>Championing employee recognition and collaborative team-based environments</li>
-            <li>Commitment to succession management through knowledge transfer and mentorship</li>
-            <li>Modeling the importance of respect, inclusion, ethics and integrity and ensuring employee awareness of obligations regarding ethics and professional conduct</li>
-            <li>Supporting those willing to try something new, recognizing their intent and effort, accepting failure by not casting blame but rather learning from it, improving and moving forward</li>
-          </ul>
-              </template>
+        </b-card>
 
-        <template v-slot:commitment_overview>
-          <p>Identify and describe the effect the leader has on employees, clients, the public service and/or citizens of British Columbia.</p>
-          <p>Considerations may include but are not limited to</p>
-          <ul>
-            <li>Anticipating future trends and working with others to develop strategies to meet future challenges</li>
-            <li>Making decisions with considerations of the long-term impacts and context, anticipating emerging priorities as well as the current need</li>
-            <li>Experimental or innovative mindset whereby openness to change, taking calculated risks and challenging the status quo to try something new resulted in a measurable outcome</li>
-            <li>Enabling innovation by visibly and actively inviting and advancing new ideas within their organization and demonstrating the courage to embrace change</li>
-            <li>Strong client service orientation ensuring service design needs are driven by citizens’ needs or client outcomes rather than internally focused metrics</li>
-          </ul>
-        </template>
-
-        <template v-slot:impact_overview>
-          <p>Describe and use metrics (if applicable) to support the effect the leader has on employees, clients, the public service and/or citizens of British Columbia.</p>
-          <p>Considerations may include but are not limited to</p>
-            <ul>
-              <li>Improving the quality of the workplace for employees by contributing to the enhancement of diversity, health and safety, workplace culture and employee development</li>
-            <li>Supporting innovation, new technology and best practices resulting in the improvement of workplace processes such as reducing costs or increasing efficiencies</li>
-              <li>Improving the quality, cost-effectiveness or productivity of services to internal or external stakeholders</li>
-              <li>Improving government-to-business or government-to-citizen service delivery</li>
-              <li>Measurable benefits to their organization(s) and/or the citizens of British Columbia through process improvements to transform business practices and/or sustainable revenue generation or savings</li>
-              <li>Improved organizational performance as indicated by Work Environment Survey scores</li>
-          </ul>
-        </template>
-      </evaluation>
-
-      <h4 id="list-item-attachments">Attachments</h4>
-      <attachments />
-
-  </div>
-  </b-col>
-
-  <b-col cols="3">
-    <inputMenu :inputs="inputs" />
-  </b-col>
-
-  </b-row>
+        <RegMenu :updater="this.updater" submit-label="Submit Registration" />
+      </div>
+    </b-form>
   </b-container>
-
-  </b-form><!-- end nomination form -->
-
-  </div>
 </template>
 
 <script>
 
 import pageheader from '../common/PageHeader'
-import organization from '../inputs/InputOrganization'
-import nominees from '../inputs/InputProfile'
-import nominators from '../inputs/InputNominators'
-import contacts from '../inputs/InputContacts'
-import acknowledgment from '../inputs/InputAcknowledge'
-import evaluation from '../inputs/InputEvaluation'
-import attachments from '../inputs/InputAttachments'
-import inputMenu from '../inputs/InputMenu'
+import RegProgress from '../common/RegProgress'
+import RegMenu from '../common/RegMenu'
+import optionServices from '../../services/options.services'
+import {updateDeclarations} from "../../services/api.services";
 
 export default {
-  name: "nomination-emerging-leader",
+  name: "registration-declarations",
   components: {
     pageheader,
-    organization,
-    nominees,
-    nominators,
-    contacts,
-    acknowledgment,
-    evaluation,
-    attachments,
-    inputMenu
+    RegProgress,
+    RegMenu
   },
-  data () {
-    return {
-      inputs: [
-        {label: 'Overview', id: 'acknowledgment', required: true},
-        {label: 'Organization', id: 'organization', required: true},
-        {label: 'Nominee', id: 'nominees', required: true},
-        {label: 'Nominators', id: 'nominators', required: true},
-        {label: 'Contact Information', id: 'contacts', required: true},
-        {label: 'Evaluation Considerations', id: 'evaluation', required: true},
-        {label: 'Attachments', id: 'attachments', required: false}
-      ]
+  computed: {
+    registration () {
+      return this.$store.getters.getRegistration
+    },
+    declarations: {
+      get () {
+        // update the registration navigation
+        const { ceremonyOptOut=false } = this.$store.getters.getRegistration.declarations
+        this.$store.dispatch('setStatus', {
+          current: 'reg-step-confirmation',
+          previous: ceremonyOptOut ? 'reg-step-contact' : 'reg-step-ceremony',
+          next: null
+        })
+        return this.$store.getters.getRegistration.declarations;
+      },
+      set (value) {
+        this.$store.commit("setDeclarations", value )
+      }
+    },
+    organizations() {
+      return this.$store.getters.getOrganizations
+    },
+    awards() {
+      return this.$store.getters.getAwards
+    },
+    validate(){
+      return (field) => {
+        const fields = {
+          isDeclared: () => {
+            return !!this.declarations.isDeclared
+          },
+          surveyParticipation: () => {
+            return !!this.declarations.surveyParticipation
+          }
+        }
+        if (fields[field] === 'undefined') return false;
+        return !!fields[field]();
+      }
+    },
+  },
+  methods: {
+    updater: updateDeclarations,
+    lookup(key, value) {
+      return optionServices.lookup(key, parseInt(value))
+    },
+    lookupOrganization(value) {
+      return optionServices.lookup('organizations', parseInt(value), {organizations: this.organizations})
+    },
+    lookupAward(value) {
+      return optionServices.getAwardDetails(parseInt(value), this.awards)
     }
-  },
-  async beforeCreate() {
-    this.$store.dispatch('loadNomination', this.$route.params.id)
-      .catch(err => {
-        console.error(err)
-        this.$store.dispatch('handleError',
-          {text: 'Nomination failed to load.', type: 'danger'}
-        )
-      })
   }
-};
-</script>
-<style>
-form h4 {
-  padding-top: 70px;
 }
-</style>
-
-
+</script>

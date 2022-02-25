@@ -1,5 +1,5 @@
 /**
- * Premier's Awards: Nomination Application
+ * Premier's Awards: Registration Application
  * Developer: Spencer Rose (BCGov, PSA/PSECI)
  * Version: 1.0.0
  * Module: main.js
@@ -40,8 +40,40 @@ new Vue({
     el: '#app',
     router,
     render(h) { return h(App) },
-    async beforeMount () {
-      await store.dispatch('login')
+    async beforeCreate () {
+      try {
+        // authenticate user and load registration
+        const user = await store.dispatch('authenticate')
+        await store.dispatch('loadRegistration', user.guid)
+      } catch (err) {
+        if (err.response) {
+          // GUID not found: start a new registration
+          if (err.response.status === 404) {
+            await store.dispatch('initRegistration')
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            console.warn('Error', err.message);
+            await store.dispatch('handleError',
+              {text: 'An error occurred. Your request could not be completed.', type: 'danger'}
+            )
+          }
+        } else if (err.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          console.warn(err.request);
+          await store.dispatch('handleError',
+            {text: 'An error occurred. Your request could not be completed.', type: 'danger'}
+          )
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.warn('Error', err.message);
+          await store.dispatch('handleError',
+            {text: 'An error occurred. Your request could not be completed.', type: 'danger'}
+          )
+        }
+        // console.warn(error.config);
+      }
     }
 })
 

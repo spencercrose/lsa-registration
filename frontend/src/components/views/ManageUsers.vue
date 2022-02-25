@@ -103,7 +103,7 @@ export default {
         this.loading = false
         console.warn(err)
         await this.$store.dispatch('setMessage', {
-          text: 'An error occurred. Nominations could not be retrieved',
+          text: 'An error occurred. Registrations could not be retrieved',
           type: 'danger'
         })
       }

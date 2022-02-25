@@ -8,7 +8,7 @@
     </b-container>
 
     <b-table
-      ref="nominations-list"
+      ref="registrations-list"
       primary-key="id"
       :items="items"
       :fields="fields"
@@ -58,7 +58,7 @@ import PageHeader from '@/components/common/PageHeader'
 import EditMenu from '@/components/common/EditMenu'
 
 export default {
-  name: 'nomination-list',
+  name: 'registration-list',
   props: {
     header: String,
     lead: String
@@ -97,14 +97,14 @@ export default {
       try {
         this.loading = true
         const {guid = ''} = this.$store.getters.getUser || {}
-        this.items = await this.$store.dispatch('getUserNominations', guid)
+        this.items = await this.$store.dispatch('getUserRegistrations', guid)
         this.loading = false
       }
       catch (err) {
         this.loading = false
         console.warn(err)
         await this.$store.dispatch('setMessage', {
-          text: 'An error occurred. Nominations could not be retrieved',
+          text: 'An error occurred. Registrations could not be retrieved',
           type: 'danger'
         })
     }

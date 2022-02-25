@@ -2,14 +2,14 @@
   <div>
 
     <RedirectButton
-      label="Return to Nominations"
+      label="Return to Registrations"
       :show="done"
       :uri="isAdmin ? '/admin/list' : '/list'"
     />
 
-    <b-card id="nomination-delete" title="Delete Nomination" v-if="validation">
-      <p class="my-4">Do you want to delete this nomination?</p>
-      <b-table stacked :items="[nomination]" :fields="[
+    <b-card id="registration-delete" title="Delete Registration" v-if="validation">
+      <p class="my-4">Do you want to delete this registration?</p>
+      <b-table stacked :items="[registration]" :fields="[
         {key: 'category'},
         {key: 'title', label: 'Title/Nominee'},
         {key: 'updatedAt', label: 'Last Updated'},
@@ -53,7 +53,7 @@ import RedirectButton from '@/components/common/RedirectButton'
 import formServices from '@/services/settings.services'
 
 export default {
-  name: 'nomination-delete',
+  name: 'registration-delete',
   components: {
     RedirectButton
   },
@@ -63,11 +63,11 @@ export default {
     }
   },
   computed: {
-    nomination() {
-      return this.$store.getters.getNomination
+    registration() {
+      return this.$store.getters.getRegistration
     },
     validation() {
-      return !!this.nomination._id
+      return !!this.registration._id
     },
     isAdmin () {
       return this.$store.getters.isAdmin
@@ -79,11 +79,11 @@ export default {
     },
     async remove () {
       const id = this.$route.params.id || '';
-      this.$store.dispatch('removeNomination', id)
+      this.$store.dispatch('removeRegistration', id)
         .catch(err => {
           console.error(err)
           this.$store.dispatch('handleError',
-            {text: 'Nomination could not be deleted.', type: 'danger'}
+            {text: 'Registration could not be deleted.', type: 'danger'}
           )
       }).finally(()=>{this.done = true})
     },
@@ -92,11 +92,11 @@ export default {
     }
   },
   async beforeCreate() {
-    this.$store.dispatch('loadNomination', this.$route.params.id)
+    this.$store.dispatch('loadRegistration', this.$route.params.id)
       .catch(err => {
         console.error(err)
         this.$store.dispatch('handleError',
-          {text: 'Nomination failed to load.', type: 'danger'}
+          {text: 'Registration failed to load.', type: 'danger'}
         )
       })
   }

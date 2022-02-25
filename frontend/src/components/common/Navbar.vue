@@ -8,8 +8,9 @@
       backdrop
       style="z-index: 9999"
       shadow>
-        <Profile />
+      <Profile />
     </b-sidebar>
+
     <b-navbar fixed="top" toggleable="lg" type="dark" variant="dark" style="z-index: 9990">
       <b-navbar-brand href="/registration">
         Long Service Awards Registration
@@ -23,12 +24,12 @@
             <router-link class="nav-link" to="/" exact>Home</router-link>
           </li>
           <b-nav-item href="https://longserviceawards.gww.gov.bc.ca/">About</b-nav-item>
-
-        <!-- Right aligned nav items -->
-        <b-navbar-nav class="ml-auto" v-if="isLoggedIn">
+        </b-navbar-nav>
+          <!-- Right aligned nav items -->
+          <b-navbar-nav class="ml-auto" v-if="isLoggedIn">
             <b-nav-item-dropdown right class="btn btn-info text-light p-0">
               <template #button-content>
-                  <BIconPerson /> {{user.username}}
+                <BIconPerson /> {{user.username}}
               </template>
               <b-dropdown-item v-b-toggle.sidebar-profile v-if="isAdmin">
                 My Profile
@@ -37,16 +38,18 @@
                 <router-link to="/submissions" exact>My Registration</router-link>
               </b-dropdown-item>
             </b-nav-item-dropdown>
-          <b-nav-item v-if="isLoggedIn">
-          </b-nav-item>
-        </b-navbar-nav>
+          </b-navbar-nav>
       </b-collapse>
     </b-navbar>
   </div>
 </template>
 <script>
 
-import Profile from '@/components/common/AdminProfile'
+/**
+ *
+ */
+
+import Profile from './UserProfile'
 import { BIconPerson } from 'bootstrap-vue'
 
 export default {

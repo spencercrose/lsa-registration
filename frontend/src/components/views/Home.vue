@@ -13,7 +13,7 @@
             <b-button
                 block
                 variant="info"
-                @click="reroute(`/register`)"
+                @click="reroute(`/recipients/start`)"
               >
                 Register for Your Long Service Award
               </b-button>
@@ -42,7 +42,6 @@ export default {
   },
   methods: {
     async reroute(uri) {
-      console.log(uri)
       await this.$router.push(uri)
     }
   }

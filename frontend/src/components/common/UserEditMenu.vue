@@ -32,7 +32,7 @@ export default {
   },
   computed : {
     user () {
-      return this.$store.getters.getNomination
+      return this.$store.getters.getRegistration
     },
     settings () {
       return this.$store.getters.getSettings
