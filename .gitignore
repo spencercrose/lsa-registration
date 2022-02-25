@@ -90,6 +90,9 @@ package-lock.json
 # Next.js build output
 .next
 
+# Build folder
+build
+
 # Nuxt.js build / generate output
 .nuxt
 dist
